@@ -26,11 +26,12 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+
+/* USER CODE BEGIN PV */
 uint8_t spiTxData[3]; // Buffer for SPI transmission
 uint8_t spiRxData[3]; // Buffer for SPI reception
 uint16_t adcValue;    // Variable to store ADC value
 uint16_t pwmValue;    // Variable to store PWM value
-/* USER CODE BEGIN PV */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,10 +74,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1); // Start PWM on Timer 1, Channel 1
 
-  /* Configure SPI Mode 0 (CPOL = 0, CPHA = 0) */
+  // Configure SPI Mode 0 (CPOL = 0, CPHA = 0)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   HAL_SPI_Init(&hspi1);
+
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); // Set CS pin (PB8) initially high
 
   /* USER CODE END 2 */
 
@@ -89,11 +92,15 @@ int main(void)
     spiTxData[1] = MCP3008_CHANNEL;   // Single-ended mode, channel 0
     spiTxData[2] = 0x00;              // Empty byte for alignment
 
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET); //Pull CS line low to start communication
+
     HAL_SPI_TransmitReceive(&hspi1, spiTxData, spiRxData, 3, HAL_MAX_DELAY); //Begin SPI communication to read ADC value
+
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); // Pull CS line high to end communication
 
     adcValue = ((spiRxData[1] & 0x03) << 8) | spiRxData[2]; //Extract 10 bit ADC value
 
-    pwmValue = 1000 + (adcValue * 1000) / 1023; // Scale ADC value (0–1023) to PWM range (1000–2000 for 5–10% duty cycle)
+    pwmValue = 3277 + (adcValue * 3277) / 1023; // Scale ADC value (0–1023) to PWM range (1000–2000 for 5–10% duty cycle)
 
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwmValue); //Set PWM Duty cycle
 
