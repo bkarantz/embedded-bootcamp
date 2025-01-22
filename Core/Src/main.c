@@ -100,11 +100,11 @@ int main(void)
 
     adcValue = ((spiRxData[1] & 0x03) << 8) | spiRxData[2]; //Extract 10 bit ADC value
 
-    pwmValue = 3277 + (adcValue * 3277) / 1023; // Scale ADC value (0–1023) to PWM range (3277-6554) for 5–10% duty cycle)
+    pwmValue = 3200 + (adcValue * 3200) / 1023; // Scale ADC value (0–1023) to PWM range (3200-6400) for 5–10% duty cycle)
 
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwmValue); //Set PWM Duty cycle
 
-    HAL_Delay(50); // Short delay for stability
+    HAL_Delay(10); // Short delay for stability
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
